@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ultimate Trivia Pro - Full Feature Edition</title>
+    <title>Jeopardy Pro - Guaranteed Audio</title>
     <style>
         :root {
             --bg-color: #020617;
@@ -14,59 +14,58 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at top right, #1e293b, #020617);
             color: #f8fafc; margin: 0; min-height: 100vh; overflow-x: hidden;
         }
 
-        /* --- UI ELEMENTS --- */
+        /* --- UI CONTROLS --- */
         #setup-page, #game-page, #winner-page { display: none; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
         #setup-page { display: flex; height: 100vh; justify-content: center; }
 
         .music-ctrl {
             position: fixed; top: 20px; right: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
-            border: 1px solid var(--accent-color); cursor: pointer; color: white;
+            background: rgba(0,0,0,0.8); padding: 12px 24px; border-radius: 50px; 
+            border: 2px solid var(--accent-color); cursor: pointer; color: white; font-weight: bold;
         }
 
         .scoreboard-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; width: 100%; }
-        .team-card { background: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; min-width: 130px; }
-        .team-score { font-size: 1.8rem; font-weight: 800; color: var(--gold); }
-        .manual-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; cursor: pointer; padding: 2px 8px; border-radius: 4px; margin: 0 2px; }
+        .team-card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; min-width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .team-score { font-size: 2rem; font-weight: 800; color: var(--gold); margin: 5px 0; }
+        .manual-btn { background: #334155; border: none; color: white; cursor: pointer; padding: 5px 12px; border-radius: 4px; font-weight: bold; }
 
         /* THE GRID (4x10) */
         .game-board { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
-            width: 95%; max-width: 1100px; margin-bottom: 50px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; 
+            width: 98%; max-width: 1200px; margin-bottom: 50px;
         }
-        .category-header { text-align: center; font-weight: 900; color: var(--accent-color); text-transform: uppercase; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 8px; }
+        .category-header { text-align: center; font-weight: 900; color: var(--accent-color); text-transform: uppercase; padding: 15px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid var(--accent-color); }
         
         .card { 
-            background: var(--card-bg); height: 55px; display: flex; justify-content: center; 
-            align-items: center; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s;
-            border: 1px solid rgba(255,255,255,0.1); position: relative;
+            background: var(--card-bg); height: 65px; display: flex; justify-content: center; 
+            align-items: center; font-size: 1.4rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.1); color: var(--gold);
         }
-        .card:hover { transform: scale(1.03); border-color: var(--accent-color); }
-        .card.used { opacity: 0.25; border-color: transparent; }
-        .card.used::after { content: 'REV'; position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; opacity: 0.5; }
+        .card:hover { transform: translateY(-3px); border-color: var(--gold); background: #1e293b; }
+        .card.used { opacity: 0.2; background: #0f172a; cursor: pointer; }
 
         /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: #1e293b; padding: 2.5rem; border-radius: 24px; max-width: 700px; width: 90%; text-align: center; border: 2px solid var(--accent-color); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #1e293b; padding: 3rem; border-radius: 24px; max-width: 800px; width: 90%; text-align: center; border: 3px solid var(--accent-color); box-shadow: 0 0 50px rgba(0,0,0,0.5); }
         
-        /* RANKING DISPLAY */
-        .rank-card { background: rgba(255,255,255,0.05); margin: 10px; padding: 25px; border-radius: 15px; width: 260px; text-align: center; border: 1px solid var(--gold); }
-        .rank-1 { transform: scale(1.15); border-width: 3px; box-shadow: 0 0 30px var(--gold); background: rgba(251, 191, 36, 0.1); }
+        /* RANKING */
+        .rank-card { background: rgba(30, 41, 59, 0.9); margin: 10px; padding: 30px; border-radius: 20px; width: 280px; text-align: center; border: 2px solid var(--gold); position: relative; }
+        .rank-1 { transform: scale(1.1); border-width: 5px; box-shadow: 0 0 40px var(--gold); }
 
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.2s; }
-        .firework { position: absolute; width: 4px; height: 4px; border-radius: 50%; animation: explode 2s infinite; pointer-events: none; }
-        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(30); opacity: 0; } }
+        .btn { padding: 15px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; }
+        .firework { position: absolute; width: 6px; height: 6px; border-radius: 50%; animation: explode 2s infinite; pointer-events: none; }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(40); opacity: 0; } }
     </style>
 </head>
 <body>
 
-<audio id="bg-music" loop src="https://actions.google.com/sounds/v1/science_fiction/techno_suspense.ogg"></audio>
+<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 <audio id="sfx-click" src="https://actions.google.com/sounds/v1/communication/click_buttons.ogg"></audio>
 <audio id="sfx-reveal" src="https://actions.google.com/sounds/v1/cartoon/clime_up_the_ladder.ogg"></audio>
 <audio id="sfx-mystery" src="https://actions.google.com/sounds/v1/emergency/ambulance_siren_short.ogg"></audio>
@@ -74,46 +73,47 @@
 <audio id="sfx-lose" src="https://actions.google.com/sounds/v1/foley/vacuum_reverse.ogg"></audio>
 <audio id="sfx-cheer" src="https://actions.google.com/sounds/v1/human_voices/crowd_cheer.ogg"></audio>
 
-<div class="music-ctrl" onclick="toggleMusic()">
+<div class="music-ctrl" id="musicBtn" onclick="toggleMusic()">
     <span id="music-icon">🔇</span> <span id="music-status">Music Off</span>
 </div>
 
 <section id="setup-page">
-    <div style="background: var(--card-bg); padding: 40px; border-radius: 24px; text-align: center; border: 1px solid var(--accent-color);">
-        <h1 style="color:var(--gold); font-size: 2.5rem; margin:0;">JEOPARDY PRO</h1>
-        <p>Set up your teams</p>
-        <div id="team-inputs"><input type="text" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;" value="Team 1"></div>
-        <button class="btn" style="background:var(--accent-color); color:black; width:100%" onclick="addTeamInput()">+ Add Team</button>
-        <button class="btn" style="background:var(--success); width:100%; margin-top:10px; color:white;" onclick="startGame()">START GAME</button>
+    <div style="background: var(--card-bg); padding: 50px; border-radius: 30px; text-align: center; border: 2px solid var(--accent-color); width: 450px;">
+        <h1 style="color:var(--gold); font-size: 3rem; margin:0 0 20px 0;">JEOPARDY</h1>
+        <div id="team-inputs">
+            <input type="text" style="width:100%; padding:15px; margin-bottom:15px; border-radius:8px; border:none; font-size:1rem;" value="Team 1">
+        </div>
+        <button class="btn" style="background:var(--accent-color); color:black; width:100%; margin-bottom:15px;" onclick="addTeamInput()">+ ADD TEAM</button>
+        <button class="btn" style="background:var(--success); width:100%; color:white; font-size:1.2rem;" onclick="startGame()">START GAME</button>
     </div>
 </section>
 
 <section id="game-page">
     <div class="scoreboard-container" id="scoreboard"></div>
     <div class="game-board" id="board">
-        <div class="category-header">Tech</div><div class="category-header">World</div><div class="category-header">Science</div><div class="category-header">Pop Culture</div>
+        <div class="category-header">Tech</div><div class="category-header">History</div><div class="category-header">Science</div><div class="category-header">Misc</div>
     </div>
-    <button class="btn" style="background:var(--danger); margin-top: 30px; color:white;" onclick="endGame()">FINISH GAME</button>
+    <button class="btn" style="background:var(--danger); margin-top: 40px; color:white;" onclick="endGame()">FINISH GAME</button>
 </section>
 
 <section id="winner-page">
-    <h1 style="color:var(--gold); font-size: 3.5rem; z-index: 10;">THE WINNERS</h1>
-    <div id="rankings-display" style="display:flex; align-items:flex-end; gap:20px; z-index: 10; flex-wrap: wrap; justify-content: center;"></div>
-    <button class="btn" style="background:var(--accent-color); margin-top:40px; z-index:10; color:black;" onclick="location.reload()">REPLAY</button>
+    <h1 style="color:var(--gold); font-size: 4rem; z-index: 10; text-shadow: 0 0 20px var(--gold);">FINAL RANKING</h1>
+    <div id="rankings-display" style="display:flex; align-items:flex-end; gap:30px; z-index: 10; flex-wrap: wrap; justify-content: center;"></div>
+    <button class="btn" style="background:var(--accent-color); margin-top:50px; z-index:10; color:black; padding: 20px 40px;" onclick="location.reload()">PLAY AGAIN</button>
 </section>
 
 <div id="qModal" class="modal">
     <div class="modal-content" id="modal-box">
-        <div id="review-tag" style="display:none; color:var(--danger); font-weight:bold; margin-bottom:10px;">REVIEW MODE</div>
-        <div id="mystery-ui" style="display:none; color:var(--gold); font-size:1.5rem; font-weight:900; margin-bottom:10px;">🚨 DOUBLE OR NOTHING! 🚨</div>
-        <div id="display-q" style="font-size: 1.8rem; margin-bottom: 1.5rem;"></div>
-        <div id="display-a" style="display:none; color: var(--gold); font-size: 2rem; margin-bottom: 1.5rem; font-weight:800;"></div>
+        <div id="review-tag" style="display:none; color:var(--danger); font-weight:bold; font-size: 1.2rem; margin-bottom:15px;">🔍 REVIEWING QUESTION</div>
+        <div id="mystery-ui" style="display:none; color:var(--gold); font-size:2rem; font-weight:900; margin-bottom:15px; animation: pulse 1s infinite;">🚨 DOUBLE OR NOTHING! 🚨</div>
+        <div id="display-q" style="font-size: 2.2rem; margin-bottom: 2rem; line-height: 1.2;"></div>
+        <div id="display-a" style="display:none; color: var(--gold); font-size: 2.5rem; margin-bottom: 2rem; font-weight:800;"></div>
         
-        <button class="btn" id="reveal-btn" style="background:var(--accent-color); color:black; padding: 15px 30px;" onclick="showAnswer()">REVEAL ANSWER</button>
+        <button class="btn" id="reveal-btn" style="background:var(--accent-color); color:black; font-size:1.5rem; padding: 20px 50px;" onclick="showAnswer()">REVEAL ANSWER</button>
 
-        <div id="award-section" style="display:none; margin-top:20px; border-top: 1px solid #444; padding-top: 20px;">
-            <div id="award-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
-            <button class="btn" style="background:#64748b; color:white; margin-top:20px;" onclick="closeQ()">Close</button>
+        <div id="award-section" style="display:none; margin-top:25px; border-top: 2px solid #334155; padding-top: 25px;">
+            <div id="award-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;"></div>
+            <button class="btn" style="background:#64748b; color:white; margin-top:30px;" onclick="closeQ()">BACK TO BOARD</button>
         </div>
     </div>
 </div>
@@ -126,31 +126,74 @@
     let isReviewMode = false;
     let questionsUsed = 0;
 
-    function playSound(id) {
-        const s = document.getElementById(id);
-        if(s) { s.currentTime = 0; s.play(); }
+    // --- REBUILT AUDIO HANDLER ---
+    function playSfx(id) {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.pause(); // Stop existing
+            sound.currentTime = 0; // Rewind
+            const playPromise = sound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => { console.log("SFX Blocked:", id); });
+            }
+        }
     }
 
     function toggleMusic() {
-        const m = document.getElementById('bg-music');
-        const status = document.getElementById('music-status');
+        const music = document.getElementById('bg-music');
         const icon = document.getElementById('music-icon');
-        m.volume = 0.2;
-        if(m.paused) { m.play(); status.innerText = "Music On"; icon.innerText = "🔊"; }
-        else { m.pause(); status.innerText = "Music Off"; icon.innerText = "🔇"; }
+        const status = document.getElementById('music-status');
+        music.volume = 0.2;
+
+        if (music.paused) {
+            music.play().then(() => {
+                icon.innerText = "🔊";
+                status.innerText = "Music On";
+            }).catch(e => alert("Please click anywhere on the page first to enable music."));
+        } else {
+            music.pause();
+            icon.innerText = "🔇";
+            status.innerText = "Music Off";
+        }
     }
 
     function addTeamInput() {
-        playSound('sfx-click');
+        playSfx('sfx-click');
         const container = document.getElementById('team-inputs');
         const inp = document.createElement('input');
         inp.type = 'text';
-        inp.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:8px;";
+        inp.style = "width:100%; padding:15px; margin-bottom:15px; border-radius:8px; border:none; font-size:1rem;";
         inp.value = `Team ${container.children.length + 1}`;
         container.appendChild(inp);
     }
 
-    function generateBoard() {
+    function startGame() {
+        // Unlock all audio on this user click
+        ['sfx-click', 'sfx-reveal', 'sfx-mystery', 'sfx-win', 'sfx-lose', 'sfx-cheer'].forEach(id => {
+            document.getElementById(id).play().then(() => {
+                document.getElementById(id).pause();
+                document.getElementById(id).currentTime = 0;
+            });
+        });
+
+        const inputs = document.querySelectorAll('#team-inputs input');
+        const scoreboard = document.getElementById('scoreboard');
+        inputs.forEach(inp => {
+            const name = inp.value;
+            teamNames.push(name);
+            teamScores[name] = 0;
+            const div = document.createElement('div');
+            div.className = 'team-card';
+            div.innerHTML = `<div style="font-weight:bold; color:var(--accent-color)">${name}</div>
+                             <div class="team-score" id="score-${name}">0</div>
+                             <div style="display:flex; justify-content:center; gap:5px;">
+                                <button class="manual-btn" onclick="modScore('${name}',-100)">-</button>
+                                <button class="manual-btn" onclick="modScore('${name}',100)">+</button>
+                             </div>`;
+            scoreboard.appendChild(div);
+        });
+
+        // Generate Board (4x10)
         const board = document.getElementById('board');
         for (let row = 1; row <= 10; row++) {
             for (let cat = 0; cat < 4; cat++) {
@@ -158,49 +201,29 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerText = val;
-                card.onclick = () => openQ(card, `Category ${cat+1} Question for ${val}`, `Correct Answer for ${val}`, val);
+                card.onclick = () => openQ(card, `Category ${cat+1} Question for ${val}`, `The Correct Answer is ${val}`, val);
                 board.appendChild(card);
             }
         }
-    }
 
-    function startGame() {
-        // Unlock Audio
-        ['sfx-click','sfx-reveal','sfx-mystery','sfx-win','sfx-lose','sfx-cheer','bg-music'].forEach(id => {
-            const a = document.getElementById(id);
-            a.play().then(() => a.pause());
-        });
-
-        const inputs = document.querySelectorAll('#team-inputs input');
-        const scoreboard = document.getElementById('scoreboard');
-        scoreboard.innerHTML = '';
-        inputs.forEach(inp => {
-            const name = inp.value;
-            teamNames.push(name);
-            teamScores[name] = 0;
-            const div = document.createElement('div');
-            div.className = 'team-card';
-            div.innerHTML = `<div>${name}</div><div class="team-score" id="score-${name}">0</div>
-                             <div><button class="manual-btn" onclick="modScore('${name}',-100)">-</button>
-                             <button class="manual-btn" onclick="modScore('${name}',100)">+</button></div>`;
-            scoreboard.appendChild(div);
-        });
-
-        generateBoard();
-        mysteryIndex = Math.floor(Math.random() * 36) + 4; // Mystery card logic
+        mysteryIndex = Math.floor(Math.random() * 30) + 5; // Avoid very top row
         document.getElementById('setup-page').style.display = 'none';
         document.getElementById('game-page').style.display = 'flex';
+        playSfx('sfx-click');
     }
 
     function modScore(name, amt) {
-        playSound('sfx-click');
+        playSfx('sfx-click');
         teamScores[name] += amt;
         document.getElementById(`score-${name}`).innerText = teamScores[name];
     }
 
     function openQ(el, q, a, val) {
         isReviewMode = el.classList.contains('used');
-        if(!isReviewMode) { el.classList.add('used'); questionsUsed++; }
+        if(!isReviewMode) { 
+            el.classList.add('used'); 
+            questionsUsed++; 
+        }
         
         currentVal = val;
         let isMystery = (Array.from(document.querySelectorAll('.card')).indexOf(el) === mysteryIndex && !isReviewMode);
@@ -213,11 +236,11 @@
         document.getElementById('review-tag').style.display = isReviewMode ? 'block' : 'none';
         
         if(isMystery) {
-            playSound('sfx-mystery');
+            playSfx('sfx-mystery');
             document.getElementById('mystery-ui').style.display = 'block';
             document.getElementById('modal-box').style.borderColor = "var(--gold)";
         } else {
-            playSound('sfx-click');
+            playSfx('sfx-click');
             document.getElementById('mystery-ui').style.display = 'none';
             document.getElementById('modal-box').style.borderColor = "var(--accent-color)";
         }
@@ -225,7 +248,7 @@
     }
 
     function showAnswer() {
-        playSound('sfx-reveal');
+        playSfx('sfx-reveal');
         document.getElementById('display-a').style.display = 'block';
         document.getElementById('reveal-btn').style.display = 'none';
         document.getElementById('award-section').style.display = 'block';
@@ -234,21 +257,37 @@
         grid.innerHTML = '';
 
         if(!isReviewMode) {
+            const isMysteryActive = (document.getElementById('mystery-ui').style.display === 'block');
             teamNames.forEach(name => {
-                const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.style.background = 'var(--success)';
-                btn.style.color = 'white';
-                btn.innerText = `Award +${currentVal} to ${name}`;
-                btn.onclick = () => { 
-                    teamScores[name] += currentVal; 
+                const awardBtn = document.createElement('button');
+                awardBtn.className = 'btn';
+                awardBtn.style.background = 'var(--success)';
+                awardBtn.style.color = 'white';
+                awardBtn.innerText = isMysteryActive ? `DOUBLE ${name}'s TOTAL` : `Award +${currentVal} to ${name}`;
+                awardBtn.onclick = () => { 
+                    if(isMysteryActive) teamScores[name] *= 2;
+                    else teamScores[name] += currentVal;
                     document.getElementById(`score-${name}`).innerText = teamScores[name];
-                    playSound('sfx-win'); closeQ();
+                    playSfx('sfx-win'); closeQ();
                 };
-                grid.appendChild(btn);
+                grid.appendChild(awardBtn);
+
+                if(isMysteryActive) {
+                    const loseBtn = document.createElement('button');
+                    loseBtn.className = 'btn';
+                    loseBtn.style.background = 'var(--danger)';
+                    loseBtn.style.color = 'white';
+                    loseBtn.innerText = `LOSE IT ALL (${name})`;
+                    loseBtn.onclick = () => { 
+                        teamScores[name] = 0; 
+                        document.getElementById(`score-${name}`).innerText = 0;
+                        playSfx('sfx-lose'); closeQ(); 
+                    };
+                    grid.appendChild(loseBtn);
+                }
             });
         } else {
-            grid.innerHTML = '<p style="grid-column: 1/-1; opacity:0.5;">Viewing previously answered question.</p>';
+            grid.innerHTML = '<p style="grid-column: 1/-1; opacity:0.6; font-size:1.2rem;">Card already played. Scoring disabled.</p>';
         }
     }
 
@@ -261,9 +300,9 @@
         document.getElementById('game-page').style.display = 'none';
         document.getElementById('winner-page').style.display = 'flex';
         document.getElementById('bg-music').pause();
-        playSound('sfx-cheer');
-        startFireworks();
-
+        playSfx('sfx-cheer');
+        
+        // Ranking Logic
         let sorted = Object.entries(teamScores).sort((a,b) => b[1] - a[1]);
         const display = document.getElementById('rankings-display');
         display.innerHTML = '';
@@ -272,25 +311,27 @@
         let winners = sorted.filter(x => x[1] === topScore);
         
         winners.forEach(w => {
-            display.innerHTML += `<div class="rank-card rank-1"><h2>🏆 WINNER</h2><h1>${w[0]}</h1><p>${w[1]} pts</p></div>`;
+            display.innerHTML += `<div class="rank-card rank-1"><div style="font-size:3rem;">🥇</div><h2>WINNER</h2><h1>${w[0]}</h1><p style="font-size:1.5rem;">${w[1]} pts</p></div>`;
         });
 
         let others = sorted.filter(x => x[1] < topScore);
-        if(others[0]) display.innerHTML += `<div class="rank-card"><h3>🥈 2nd</h3><h4>${others[0][0]}</h4><p>${others[0][1]} pts</p></div>`;
-        if(others[1]) display.innerHTML += `<div class="rank-card"><h3>🥉 3rd</h3><h4>${others[1][0]}</h4><p>${others[1][1]} pts</p></div>`;
+        if(others[0]) display.innerHTML += `<div class="rank-card"><h2>🥈 2nd</h2><h3>${others[0][0]}</h3><p>${others[0][1]} pts</p></div>`;
+        if(others[1]) display.innerHTML += `<div class="rank-card"><h2>🥉 3rd</h2><h3>${others[1][0]}</h3><p>${others[1][1]} pts</p></div>`;
+
+        startFireworks();
     }
 
     function startFireworks() {
-        for(let i=0; i<15; i++) {
+        for(let i=0; i<25; i++) {
             setTimeout(() => {
                 const f = document.createElement('div');
                 f.className = 'firework';
                 f.style.left = Math.random() * 100 + 'vw';
                 f.style.top = Math.random() * 80 + 'vh';
-                f.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                f.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 60%)`;
                 document.getElementById('winner-page').appendChild(f);
                 setTimeout(() => f.remove(), 2000);
-            }, i * 400);
+            }, i * 350);
         }
     }
 </script>
