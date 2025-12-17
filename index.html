@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Trivia Pro - Full Feature Edition</title>
+    <style>
+        :root {
+            --bg-color: #020617;
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --accent-color: #38bdf8;
+            --gold: #fbbf24;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #1e293b, #020617);
+            color: #f8fafc; margin: 0; min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* --- UI ELEMENTS --- */
+        #setup-page, #game-page, #winner-page { display: none; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
+        #setup-page { display: flex; height: 100vh; justify-content: center; }
+
+        .music-ctrl {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
+            border: 1px solid var(--accent-color); cursor: pointer; color: white;
+        }
+
+        .scoreboard-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; width: 100%; }
+        .team-card { background: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; min-width: 130px; }
+        .team-score { font-size: 1.8rem; font-weight: 800; color: var(--gold); }
+        .manual-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; cursor: pointer; padding: 2px 8px; border-radius: 4px; margin: 0 2px; }
+
+        /* THE GRID (4x10) */
+        .game-board { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
+            width: 95%; max-width: 1100px; margin-bottom: 50px;
+        }
+        .category-header { text-align: center; font-weight: 900; color: var(--accent-color); text-transform: uppercase; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 8px; }
+        
+        .card { 
+            background: var(--card-bg); height: 55px; display: flex; justify-content: center; 
+            align-items: center; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.1); position: relative;
+        }
+        .card:hover { transform: scale(1.03); border-color: var(--accent-color); }
+        .card.used { opacity: 0.25; border-color: transparent; }
+        .card.used::after { content: 'REV'; position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; opacity: 0.5; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #1e293b; padding: 2.5rem; border-radius: 24px; max-width: 700px; width: 90%; text-align: center; border: 2px solid var(--accent-color); }
+        
+        /* RANKING DISPLAY */
+        .rank-card { background: rgba(255,255,255,0.05); margin: 10px; padding: 25px; border-radius: 15px; width: 260px; text-align: center; border: 1px solid var(--gold); }
+        .rank-1 { transform: scale(1.15); border-width: 3px; box-shadow: 0 0 30px var(--gold); background: rgba(251, 191, 36, 0.1); }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.2s; }
+        .firework { position: absolute; width: 4px; height: 4px; border-radius: 50%; animation: explode 2s infinite; pointer-events: none; }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(30); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<audio id="bg-music" loop src="https://actions.google.com/sounds/v1/science_fiction/techno_suspense.ogg"></audio>
+<audio id="sfx-click" src="https://actions.google.com/sounds/v1/communication/click_buttons.ogg"></audio>
+<audio id="sfx-reveal" src="https://actions.google.com/sounds/v1/cartoon/clime_up_the_ladder.ogg"></audio>
+<audio id="sfx-mystery" src="https://actions.google.com/sounds/v1/emergency/ambulance_siren_short.ogg"></audio>
+<audio id="sfx-win" src="https://actions.google.com/sounds/v1/human_voices/applause.ogg"></audio>
+<audio id="sfx-lose" src="https://actions.google.com/sounds/v1/foley/vacuum_reverse.ogg"></audio>
+<audio id="sfx-cheer" src="https://actions.google.com/sounds/v1/human_voices/crowd_cheer.ogg"></audio>
+
+<div class="music-ctrl" onclick="toggleMusic()">
+    <span id="music-icon">🔇</span> <span id="music-status">Music Off</span>
+</div>
+
+<section id="setup-page">
+    <div style="background: var(--card-bg); padding: 40px; border-radius: 24px; text-align: center; border: 1px solid var(--accent-color);">
+        <h1 style="color:var(--gold); font-size: 2.5rem; margin:0;">JEOPARDY PRO</h1>
+        <p>Set up your teams</p>
+        <div id="team-inputs"><input type="text" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;" value="Team 1"></div>
+        <button class="btn" style="background:var(--accent-color); color:black; width:100%" onclick="addTeamInput()">+ Add Team</button>
+        <button class="btn" style="background:var(--success); width:100%; margin-top:10px; color:white;" onclick="startGame()">START GAME</button>
+    </div>
+</section>
+
+<section id="game-page">
+    <div class="scoreboard-container" id="scoreboard"></div>
+    <div class="game-board" id="board">
+        <div class="category-header">Tech</div><div class="category-header">World</div><div class="category-header">Science</div><div class="category-header">Pop Culture</div>
+    </div>
+    <button class="btn" style="background:var(--danger); margin-top: 30px; color:white;" onclick="endGame()">FINISH GAME</button>
+</section>
+
+<section id="winner-page">
+    <h1 style="color:var(--gold); font-size: 3.5rem; z-index: 10;">THE WINNERS</h1>
+    <div id="rankings-display" style="display:flex; align-items:flex-end; gap:20px; z-index: 10; flex-wrap: wrap; justify-content: center;"></div>
+    <button class="btn" style="background:var(--accent-color); margin-top:40px; z-index:10; color:black;" onclick="location.reload()">REPLAY</button>
+</section>
+
+<div id="qModal" class="modal">
+    <div class="modal-content" id="modal-box">
+        <div id="review-tag" style="display:none; color:var(--danger); font-weight:bold; margin-bottom:10px;">REVIEW MODE</div>
+        <div id="mystery-ui" style="display:none; color:var(--gold); font-size:1.5rem; font-weight:900; margin-bottom:10px;">🚨 DOUBLE OR NOTHING! 🚨</div>
+        <div id="display-q" style="font-size: 1.8rem; margin-bottom: 1.5rem;"></div>
+        <div id="display-a" style="display:none; color: var(--gold); font-size: 2rem; margin-bottom: 1.5rem; font-weight:800;"></div>
+        
+        <button class="btn" id="reveal-btn" style="background:var(--accent-color); color:black; padding: 15px 30px;" onclick="showAnswer()">REVEAL ANSWER</button>
+
+        <div id="award-section" style="display:none; margin-top:20px; border-top: 1px solid #444; padding-top: 20px;">
+            <div id="award-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
+            <button class="btn" style="background:#64748b; color:white; margin-top:20px;" onclick="closeQ()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let teamNames = [];
+    let teamScores = {};
+    let mysteryIndex = -1;
+    let currentVal = 0;
+    let isReviewMode = false;
+    let questionsUsed = 0;
+
+    function playSound(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play(); }
+    }
+
+    function toggleMusic() {
+        const m = document.getElementById('bg-music');
+        const status = document.getElementById('music-status');
+        const icon = document.getElementById('music-icon');
+        m.volume = 0.2;
+        if(m.paused) { m.play(); status.innerText = "Music On"; icon.innerText = "🔊"; }
+        else { m.pause(); status.innerText = "Music Off"; icon.innerText = "🔇"; }
+    }
+
+    function addTeamInput() {
+        playSound('sfx-click');
+        const container = document.getElementById('team-inputs');
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:8px;";
+        inp.value = `Team ${container.children.length + 1}`;
+        container.appendChild(inp);
+    }
+
+    function generateBoard() {
+        const board = document.getElementById('board');
+        for (let row = 1; row <= 10; row++) {
+            for (let cat = 0; cat < 4; cat++) {
+                const val = row * 100;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerText = val;
+                card.onclick = () => openQ(card, `Category ${cat+1} Question for ${val}`, `Correct Answer for ${val}`, val);
+                board.appendChild(card);
+            }
+        }
+    }
+
+    function startGame() {
+        // Unlock Audio
+        ['sfx-click','sfx-reveal','sfx-mystery','sfx-win','sfx-lose','sfx-cheer','bg-music'].forEach(id => {
+            const a = document.getElementById(id);
+            a.play().then(() => a.pause());
+        });
+
+        const inputs = document.querySelectorAll('#team-inputs input');
+        const scoreboard = document.getElementById('scoreboard');
+        scoreboard.innerHTML = '';
+        inputs.forEach(inp => {
+            const name = inp.value;
+            teamNames.push(name);
+            teamScores[name] = 0;
+            const div = document.createElement('div');
+            div.className = 'team-card';
+            div.innerHTML = `<div>${name}</div><div class="team-score" id="score-${name}">0</div>
+                             <div><button class="manual-btn" onclick="modScore('${name}',-100)">-</button>
+                             <button class="manual-btn" onclick="modScore('${name}',100)">+</button></div>`;
+            scoreboard.appendChild(div);
+        });
+
+        generateBoard();
+        mysteryIndex = Math.floor(Math.random() * 36) + 4; // Mystery card logic
+        document.getElementById('setup-page').style.display = 'none';
+        document.getElementById('game-page').style.display = 'flex';
+    }
+
+    function modScore(name, amt) {
+        playSound('sfx-click');
+        teamScores[name] += amt;
+        document.getElementById(`score-${name}`).innerText = teamScores[name];
+    }
+
+    function openQ(el, q, a, val) {
+        isReviewMode = el.classList.contains('used');
+        if(!isReviewMode) { el.classList.add('used'); questionsUsed++; }
+        
+        currentVal = val;
+        let isMystery = (Array.from(document.querySelectorAll('.card')).indexOf(el) === mysteryIndex && !isReviewMode);
+
+        document.getElementById('display-q').innerText = q;
+        document.getElementById('display-a').innerText = a;
+        document.getElementById('display-a').style.display = 'none';
+        document.getElementById('reveal-btn').style.display = 'inline-block';
+        document.getElementById('award-section').style.display = 'none';
+        document.getElementById('review-tag').style.display = isReviewMode ? 'block' : 'none';
+        
+        if(isMystery) {
+            playSound('sfx-mystery');
+            document.getElementById('mystery-ui').style.display = 'block';
+            document.getElementById('modal-box').style.borderColor = "var(--gold)";
+        } else {
+            playSound('sfx-click');
+            document.getElementById('mystery-ui').style.display = 'none';
+            document.getElementById('modal-box').style.borderColor = "var(--accent-color)";
+        }
+        document.getElementById('qModal').style.display = 'flex';
+    }
+
+    function showAnswer() {
+        playSound('sfx-reveal');
+        document.getElementById('display-a').style.display = 'block';
+        document.getElementById('reveal-btn').style.display = 'none';
+        document.getElementById('award-section').style.display = 'block';
+        
+        const grid = document.getElementById('award-grid');
+        grid.innerHTML = '';
+
+        if(!isReviewMode) {
+            teamNames.forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.style.background = 'var(--success)';
+                btn.style.color = 'white';
+                btn.innerText = `Award +${currentVal} to ${name}`;
+                btn.onclick = () => { 
+                    teamScores[name] += currentVal; 
+                    document.getElementById(`score-${name}`).innerText = teamScores[name];
+                    playSound('sfx-win'); closeQ();
+                };
+                grid.appendChild(btn);
+            });
+        } else {
+            grid.innerHTML = '<p style="grid-column: 1/-1; opacity:0.5;">Viewing previously answered question.</p>';
+        }
+    }
+
+    function closeQ() {
+        document.getElementById('qModal').style.display = 'none';
+        if(questionsUsed >= 40) endGame();
+    }
+
+    function endGame() {
+        document.getElementById('game-page').style.display = 'none';
+        document.getElementById('winner-page').style.display = 'flex';
+        document.getElementById('bg-music').pause();
+        playSound('sfx-cheer');
+        startFireworks();
+
+        let sorted = Object.entries(teamScores).sort((a,b) => b[1] - a[1]);
+        const display = document.getElementById('rankings-display');
+        display.innerHTML = '';
+        
+        let topScore = sorted[0][1];
+        let winners = sorted.filter(x => x[1] === topScore);
+        
+        winners.forEach(w => {
+            display.innerHTML += `<div class="rank-card rank-1"><h2>🏆 WINNER</h2><h1>${w[0]}</h1><p>${w[1]} pts</p></div>`;
+        });
+
+        let others = sorted.filter(x => x[1] < topScore);
+        if(others[0]) display.innerHTML += `<div class="rank-card"><h3>🥈 2nd</h3><h4>${others[0][0]}</h4><p>${others[0][1]} pts</p></div>`;
+        if(others[1]) display.innerHTML += `<div class="rank-card"><h3>🥉 3rd</h3><h4>${others[1][0]}</h4><p>${others[1][1]} pts</p></div>`;
+    }
+
+    function startFireworks() {
+        for(let i=0; i<15; i++) {
+            setTimeout(() => {
+                const f = document.createElement('div');
+                f.className = 'firework';
+                f.style.left = Math.random() * 100 + 'vw';
+                f.style.top = Math.random() * 80 + 'vh';
+                f.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                document.getElementById('winner-page').appendChild(f);
+                setTimeout(() => f.remove(), 2000);
+            }, i * 400);
+        }
+    }
+</script>
+</body>
+</html>
